@@ -5,55 +5,22 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
+import model_nvidia
+import model_darknet53
 
-def build_model(batch_size, img_height, img_width):
-    #Note: also try adding regularizer to layers, batch normalization as well.
-    model = tfk.Sequential()
-    model.add(tfk.layers.Conv2D(filters=24, kernel_size=(5, 5), strides=(2, 2),
-                                input_shape=(img_height, img_width, 3), kernel_initializer='he_normal'))
-    model.add(tfk.layers.BatchNormalization())
-    model.add(tfk.layers.Activation('relu'))
 
-    model.add(tfk.layers.Conv2D(filters=36, kernel_size=(5, 5), strides=(2, 2), kernel_initializer='he_normal'))
-    model.add(tfk.layers.BatchNormalization())
-    model.add(tfk.layers.Activation('relu'))
+def build_model(batch_size, img_height, img_width, name):
 
-    model.add(tfk.layers.Conv2D(filters=48, kernel_size=(5, 5), strides=(2, 2), kernel_initializer='he_normal'))
-    model.add(tfk.layers.BatchNormalization())
-    model.add(tfk.layers.Activation('relu'))
+    if name == 'nvidia':
+        return model_nvidia.build_nvidia(img_height, img_width)
+    elif name == 'darknet53':
+        return model_darknet53.build_darknet(img_height, img_width)
 
-    model.add(tfk.layers.Conv2D(filters=64, kernel_size=(3, 3), strides=(1, 1), kernel_initializer='he_normal'))
-    model.add(tfk.layers.BatchNormalization())
-    model.add(tfk.layers.Activation('relu'))
-
-    model.add(tfk.layers.Conv2D(filters=64, kernel_size=(3, 3), strides=(1, 1), kernel_initializer='he_normal'))
-    model.add(tfk.layers.BatchNormalization())
-    model.add(tfk.layers.Activation('relu'))
-
-    model.add(tfk.layers.Flatten())
-
-    model.add(tfk.layers.Dense(1000, kernel_initializer='he_normal'))
-    model.add(tfk.layers.BatchNormalization())
-    model.add(tfk.layers.Activation('relu'))
-
-    model.add(tfk.layers.Dense(100, kernel_initializer='he_normal'))
-    model.add(tfk.layers.BatchNormalization())
-    model.add(tfk.layers.Activation('relu'))
-
-    model.add(tfk.layers.Dense(50, kernel_initializer='he_normal'))
-    model.add(tfk.layers.BatchNormalization())
-    model.add(tfk.layers.Activation('relu'))
-
-    model.add(tfk.layers.Dense(10, kernel_initializer='he_normal'))
-    model.add(tfk.layers.BatchNormalization())
-    model.add(tfk.layers.Activation('relu'))
-
-    model.add(tfk.layers.Dense(1))
-
-    return model
 
 def main():
     which = ['simulator', 'real'][1] #switch
+    model_name = ['nvidia', 'darknet53', ''][1]
+
     checkpoint_path, data, n_train_samples = None, None, None
     if which == 'simulator':
         # n_total_samples = 34386
@@ -63,10 +30,11 @@ def main():
     elif which == 'real':
         # n_total_samples = 28382
         n_train_samples = 22706 #todo
-        checkpoint_path = '/media/aayush/Other/Udacity Data Real/CH2_002/output/checkpoints_real/weights.{epoch:02d}-{val_loss:.2f}'
+        checkpoint_path = '/media/aayush/Other/Udacity Data Real/CH2_002/output/checkpoints_real/' + model_name \
+                          + '/weights.{epoch:02d}-{val_loss:.2f}'
         data = pd.read_csv('/media/aayush/Other/Udacity Data Real/CH2_002/output/filtered_only_center.csv')
 
-    batch_size = 150
+    batch_size = 50
     image_height = 105 #140 #66
     image_width = 240 #320 #200
 
@@ -84,7 +52,7 @@ def main():
     X_test = image_paths[n_train_samples:]
     y_test = angles[n_train_samples:]
 
-    model = build_model(batch_size, image_height, image_width)
+    model = build_model(batch_size, image_height, image_width, model_name)
     model.summary()
     model.compile(optimizer=tfk.optimizers.Adam(lr=learning_rate), loss='mean_squared_error',
                   metrics=['accuracy'])
@@ -104,11 +72,13 @@ def main():
     ckpt_callback = tfk.callbacks.ModelCheckpoint(checkpoint_path, save_weights_only=True, verbose=1, monitor='val_loss',
                                                   save_best_only=True, mode='min')
 
+    tensorboard_callback = tfk.callbacks.TensorBoard(log_dir='/media/aayush/Other/Udacity Data Real/CH2_002/output/'+model_name+'_logs',
+                                                                     histogram_freq=0, batch_size=50, write_graph=True,
+                                                                     write_grads=True, update_freq='batch')
     history = model.fit_generator(generator=train_batch_generator, epochs=n_epochs, verbose=2,
                                   validation_data=val_batch_generator, validation_freq=1, workers=8,
-                                  use_multiprocessing=True, shuffle=True, callbacks=[ckpt_callback])
+                                  use_multiprocessing=True, shuffle=True, callbacks=[ckpt_callback, tensorboard_callback])
 
-    # summarize history for loss
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.title('model loss')

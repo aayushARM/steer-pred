@@ -101,7 +101,7 @@ class BatchGenerator(tfk.utils.Sequence):
         self.X_batch = np.empty([self.batch_size, self.img_height, self.img_width, 3])
         self.y_batch = np.empty(self.batch_size)
         self.num_batches = int(math.ceil(len(self.X) / float(self.batch_size)))
-
+        self.real = False
     def __len__(self):
         return self.num_batches
 
