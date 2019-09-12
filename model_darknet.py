@@ -1,5 +1,5 @@
-# Modified version of DarkNet from YOLOv3, the total no. of trainable parameters(see model.summary()) have been kept approximately same as 
-# NVIDIA PilotNet architecture for fair comparison on the same dataset.
+# Modified version of DarkNet from YOLOv3(https://arxiv.org/abs/1804.02767), the total no. of trainable parameters(see model.summary())
+# have been kept approximately same as NVIDIA PilotNet architecture for fair comparison on the same dataset.
 
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.layers import Input, Conv2D, GlobalAveragePooling2D, Dense
@@ -11,22 +11,7 @@ image_height = 105
 image_width = 240
 
 def conv2d_unit(x, filters, kernels, strides=1):
-    """Convolution Unit
-    This function defines a 2D convolution operation with BN and LeakyReLU.
-
-    # Arguments
-        x: Tensor, input tensor of conv layer.
-        filters: Integer, the dimensionality of the output space.
-        kernels: An integer or tuple/list of 2 integers, specifying the
-            width and height of the 2D convolution window.
-        strides: An integer or tuple/list of 2 integers,
-            specifying the strides of the convolution along the width and
-            height. Can be a single integer to specify the same value for
-            all spatial dimensions.
-
-    # Returns
-            Output tensor.
-    """
+    
     x = Conv2D(filters, kernels,
                padding='same',
                strides=strides,
@@ -39,17 +24,7 @@ def conv2d_unit(x, filters, kernels, strides=1):
 
 
 def residual_block(inputs, filters):
-    """Residual Block
-    This function defines a 2D convolution operation with BN and LeakyReLU.
-
-    # Arguments
-        x: Tensor, input tensor of residual block.
-        kernels: An integer or tuple/list of 2 integers, specifying the
-            width and height of the 2D convolution window.
-
-    # Returns
-        Output tensor.
-    """
+    
     x = conv2d_unit(inputs, filters, (1, 1))
     x = conv2d_unit(x, 2 * filters, (3, 3))
     x = add([inputs, x])
@@ -59,8 +34,7 @@ def residual_block(inputs, filters):
 
 
 def stack_residual_block(inputs, filters, n):
-    """Stacked residual Block
-    """
+    
     x = residual_block(inputs, filters)
 
     for i in range(n - 1):
@@ -70,8 +44,6 @@ def stack_residual_block(inputs, filters, n):
 
 
 def darknet_base(inputs):
-    """Darknet-53 base model.
-    """
 
     x = conv2d_unit(inputs, 32, (3, 3))
 
@@ -94,8 +66,7 @@ def darknet_base(inputs):
 
 
 def build_darknet(img_height, img_width):
-    """Darknet-53 classifier.
-    """
+    
     inputs = Input(shape=(img_height, img_width, 3))
     x = darknet_base(inputs)
 
