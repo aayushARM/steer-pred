@@ -1,4 +1,4 @@
-# Modified version of DarkNet from YOLOv3, the total no. of trainable parameters have been kept approximately same as 
+# Modified version of DarkNet from YOLOv3, the total no. of trainable parameters(see model.summary()) have been kept approximately same as 
 # NVIDIA PilotNet architecture for fair comparison on the same dataset.
 
 from tensorflow.python.keras.models import Model
