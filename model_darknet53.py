@@ -1,5 +1,6 @@
-"""Darknet-53 for yolo v3.
-"""
+# Modified version of DarkNet from YOLOv3, the total no. of trainable parameters have been kept approximately same as 
+# NVIDIA PilotNet architecture for fair comparison on the same dataset.
+
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.layers import Input, Conv2D, GlobalAveragePooling2D, Dense
 from tensorflow.python.keras.layers import add, Activation, BatchNormalization
