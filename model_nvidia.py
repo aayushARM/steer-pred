@@ -1,3 +1,5 @@
+# Recreation of the original PilotNet architecture described in the paper(https://arxiv.org/abs/1704.07911)
+
 import tensorflow.python.keras as tfk
 
 image_height = 105
