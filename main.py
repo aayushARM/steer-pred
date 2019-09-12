@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import model_nvidia
-import model_darknet53
+import model_darknet
 
 
 def build_model(batch_size, img_height, img_width, name):
